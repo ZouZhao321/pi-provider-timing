@@ -4,6 +4,10 @@ pi 扩展：记录每次 provider 请求的首 token 延迟与输出速率，追
 
 pi 自身的 usage 只包含 token 计数与成本，没有任何时间量测。内置的 `PI_TIMING=1` 只测启动阶段的耗时，与模型响应无关。本扩展补上这块缺口：在 `before_provider_request`、`after_provider_response`、`message_update`、`message_end` 上打时间戳，按请求产出一条记录。
 
+## 安装与加载
+
+扩展放在 `~/.pi/agent/extensions/provider-timing/`，pi 启动时自动发现。改动源码后执行 `/reload` 或重启 pi 生效，不需要重新安装。`node_modules` 仅供编辑器类型提示与本地检查使用，运行时解析的 `@earendil-works/pi-coding-agent` 由 pi 自己提供。
+
 ## 数据文件
 
 ```
@@ -14,28 +18,28 @@ agent 目录默认是 `~/.pi/agent`，可用 `PI_CODING_AGENT_DIR` 改变。每�
 
 ## 记录字段
 
-| 字段 | 含义 |
-| --- | --- |
-| `at` | 记录写入时刻（ISO 8601） |
-| `sessionId` | 会话 ID |
-| `seq` | 本会话内的请求序号，从 1 开始 |
-| `provider` / `model` | 请求时的 provider 与模型 |
-| `thinkingLevel` | 请求时的思考等级 |
-| `stopReason` | `stop`、`toolUse`、`length`、`error`、`aborted`，没有等到消息结束时为 `superseded` |
-| `errorMessage` | 失败原因原文，成功时为 null |
-| `timing.payloadAt` | payload 构建完成、HTTP 调用之前的时刻，首 token 延迟的起点 |
-| `timing.responseAt` | 响应头到达的时刻，流尚未消费；provider 不暴露响应时为 null |
-| `timing.firstDeltaAt` | 首个增量到达的时刻 |
-| `timing.lastDeltaAt` | 末个增量到达的时刻 |
-| `timing.ttftMs` | `firstDeltaAt - payloadAt`，用户感知的等待 |
-| `timing.serverTtftMs` | `firstDeltaAt - responseAt`，扣掉网络与排队后的服务端首 token 时间 |
-| `timing.streamMs` | `lastDeltaAt - firstDeltaAt`，流的总跨度 |
-| `tokens.output` | provider 上报的输出 token（含思考） |
-| `tokens.reasoning` | provider 上报的思考 token；未上报时为 null |
-| `segments.thinking` | 思考分段的增量数、生成时间、token 与速率 |
-| `segments.output` | 可见输出分段（正文与工具调用参数）的同组字段 |
-| `segments.overallTokensPerSecond` | 全部输出 token 除以流的总跨度 |
-| `segments.interleaved` | 思考与输出是否交替出现（思考 → 输出 → 思考） |
+| 字段                              | 含义                                                                               |
+| --------------------------------- | ---------------------------------------------------------------------------------- |
+| `at`                              | 记录写入时刻（ISO 8601）                                                           |
+| `sessionId`                       | 会话 ID                                                                            |
+| `seq`                             | 本会话内的请求序号，从 1 开始                                                      |
+| `provider` / `model`              | 请求时的 provider 与模型                                                           |
+| `thinkingLevel`                   | 请求时的思考等级                                                                   |
+| `stopReason`                      | `stop`、`toolUse`、`length`、`error`、`aborted`，没有等到消息结束时为 `superseded` |
+| `errorMessage`                    | 失败原因原文，成功时为 null                                                        |
+| `timing.payloadAt`                | payload 构建完成、HTTP 调用之前的时刻，首 token 延迟的起点                         |
+| `timing.responseAt`               | 响应头到达的时刻，流尚未消费；provider 不暴露响应时为 null                         |
+| `timing.firstDeltaAt`             | 首个增量到达的时刻                                                                 |
+| `timing.lastDeltaAt`              | 末个增量到达的时刻                                                                 |
+| `timing.ttftMs`                   | `firstDeltaAt - payloadAt`，用户感知的等待                                         |
+| `timing.serverTtftMs`             | `firstDeltaAt - responseAt`，扣掉网络与排队后的服务端首 token 时间                 |
+| `timing.streamMs`                 | `lastDeltaAt - firstDeltaAt`，流的总跨度                                           |
+| `tokens.output`                   | provider 上报的输出 token（含思考）                                                |
+| `tokens.reasoning`                | provider 上报的思考 token；未上报时为 null                                         |
+| `segments.thinking`               | 思考分段的增量数、生成时间、token 与速率                                           |
+| `segments.output`                 | 可见输出分段（正文与工具调用参数）的同组字段                                       |
+| `segments.overallTokensPerSecond` | 全部输出 token 除以流的总跨度                                                      |
+| `segments.interleaved`            | 思考与输出是否交替出现（思考 → 输出 → 思考）                                       |
 
 ## 三种速率的口径
 
@@ -57,8 +61,11 @@ agent 目录默认是 `~/.pi/agent`，可用 `PI_CODING_AGENT_DIR` 改变。每�
 ```bash
 node -e "
 const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const file = path.join(os.homedir(), '.pi', 'agent', 'provider-timing', 'requests.jsonl');
 const rows = fs
-  .readFileSync(process.env.HOME + '/.pi/agent/provider-timing/requests.jsonl', 'utf8')
+  .readFileSync(file, 'utf8')
   .trim()
   .split('\n')
   .map((line) => JSON.parse(line))
