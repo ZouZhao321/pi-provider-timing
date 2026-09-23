@@ -16,6 +16,36 @@ pi 自身的 usage 只包含 token 计数与成本，没有任何时间量测。
 
 agent 目录默认是 `~/.pi/agent`，可用 `PI_CODING_AGENT_DIR` 改变。每次 provider 请求追加一行，多个 pi 进程同时写不会互相覆盖。文件只增不减，需要清理时自行处理。
 
+## 日志
+
+诊断日志写在 `<agent 目录>/provider-timing/plugin.log`，与数据文件同目录。默认只记录扩展加载、会话开始、异常路径与写入失败，正常运行时一次会话只有两行：
+
+```
+2026-09-23T08:52:49.296Z INFO  loaded {"pid":22296,"pi":"0.84.2","agentDir":"C:\\Users\\ZouZhao\\.pi\\agent"}
+2026-09-23T08:52:49.491Z INFO  session-start {"sessionId":"01a0cd77-b2c8-7d07-91cc-b8f98dfa0580","mode":"print"}
+```
+
+设置 `PI_PROVIDER_TIMING_DEBUG=1` 之后追加每个事件、每次请求开始与结束、每个增量：
+
+```
+2026-09-23T08:53:08.546Z DEBUG event {"type":"before_provider_request"}
+2026-09-23T08:53:08.547Z DEBUG request-begin {"seq":1}
+2026-09-23T08:53:15.751Z DEBUG delta {"kind":"output","eventType":"text_delta"}
+2026-09-23T08:53:15.755Z DEBUG request-end {"seq":1,"stopReason":"stop","ttftMs":6991,"thinkingTokensPerSecond":64.2,"outputTokensPerSecond":272.7}
+```
+
+| 消息                    | 级别  | 含义                                                                                      |
+| ----------------------- | ----- | ----------------------------------------------------------------------------------------- |
+| `loaded`                | INFO  | 扩展工厂函数执行，回答「扩展有没有被加载」                                                |
+| `session-start`         | INFO  | 会话开始，记录运行模式与会话 ID                                                           |
+| `window-fallback`       | INFO  | `before_provider_request` 没有触发，该条请求的 `payloadAt` 来自消息自身的时间戳           |
+| `delta-without-request` | WARN  | 没有活跃请求时收到增量                                                                    |
+| `token-mismatch`        | WARN  | `reasoning` 大于 `output`，该条记录的分段 token 留空                                      |
+| `request-superseded`    | WARN  | 上一个请求没有等到 `message_end` 就被顶替，同时写出一条 `stopReason: "superseded"` 的记录 |
+| `write-failed`          | ERROR | `requests.jsonl` 写入失败，含文件名与错误原文，随后原错误照常抛出                         |
+
+日志不做轮转。默认级别下增长极慢，`PI_PROVIDER_TIMING_DEBUG=1` 是临时排查开关，用完取消即可。日志不写 stdout/stderr，不会污染 print 与 json 模式的输出。
+
 ## 记录字段
 
 | 字段                              | 含义                                                                               |

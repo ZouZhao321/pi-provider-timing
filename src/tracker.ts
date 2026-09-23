@@ -90,10 +90,17 @@ export function deltaKind(eventType: string): DeltaKind | null {
   return null;
 }
 
+export interface TrackerDiagnostics {
+  onDeltaWithoutRequest(atMs: number): void;
+  onTokenMismatch(details: { output: number; reasoning: number }): void;
+}
+
 export class RequestTracker {
   private sessionId = 'unknown';
   private seq = 0;
   private active: ActiveRequest | null = null;
+
+  constructor(private readonly diagnostics?: TrackerDiagnostics) {}
 
   reset(sessionId: string): void {
     this.sessionId = sessionId;
@@ -131,9 +138,9 @@ export class RequestTracker {
     return superseded;
   }
 
-  // assistant 消息开始时调用。provider 请求钩子没有触发时用消息自身的时间戳兜底。
-  ensureActive(input: BeginInput): void {
-    if (this.active) return;
+  // assistant 消息开始时调用。provider 请求钩子没有触发时用消息自身的时间戳兜底，返回是否新建了窗口。
+  ensureActive(input: BeginInput): boolean {
+    if (this.active) return false;
     this.seq += 1;
     this.active = {
       seq: this.seq,
@@ -149,6 +156,7 @@ export class RequestTracker {
       thinking: emptyDeltaStats(),
       output: emptyDeltaStats(),
     };
+    return true;
   }
 
   noteResponse(atMs: number): void {
@@ -159,7 +167,10 @@ export class RequestTracker {
   // 增量到达时调用。相邻增量的间隔计入当前增量的分段生成时间，交错流也能正确归集。
   noteDelta(kind: DeltaKind, atMs: number): void {
     const active = this.active;
-    if (!active) return;
+    if (!active) {
+      this.diagnostics?.onDeltaWithoutRequest(atMs);
+      return;
+    }
 
     const stats = kind === 'thinking' ? active.thinking : active.output;
     if (active.lastDeltaAtMs !== null) {
@@ -207,7 +218,12 @@ export class RequestTracker {
     const reasoning = input.reasoningTokens;
     if (typeof reasoning === 'number' && Number.isFinite(reasoning)) {
       thinkingTokens = reasoning;
-      visibleTokens = input.outputTokens >= reasoning ? input.outputTokens - reasoning : null;
+      if (input.outputTokens >= reasoning) {
+        visibleTokens = input.outputTokens - reasoning;
+      } else {
+        visibleTokens = null;
+        this.diagnostics?.onTokenMismatch({ output: input.outputTokens, reasoning });
+      }
     }
 
     const overallTokensPerSecond =

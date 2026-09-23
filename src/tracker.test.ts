@@ -220,3 +220,46 @@ describe('RequestTracker', () => {
     expect(record!.sessionId).toBe('s2');
   });
 });
+
+describe('RequestTracker 诊断回调', () => {
+  const noop = () => {};
+
+  it('ensureActive 返回是否新建了窗口', () => {
+    const tracker = new RequestTracker();
+    tracker.reset('s1');
+    expect(
+      tracker.ensureActive({ atMs: 500, provider: 'p', model: 'm', thinkingLevel: 'off' }),
+    ).toBe(true);
+    expect(
+      tracker.ensureActive({ atMs: 600, provider: 'p', model: 'm', thinkingLevel: 'off' }),
+    ).toBe(false);
+  });
+
+  it('没有活跃请求时收到增量会报告出来', () => {
+    const seen: number[] = [];
+    const tracker = new RequestTracker({
+      onDeltaWithoutRequest: (atMs) => seen.push(atMs),
+      onTokenMismatch: noop,
+    });
+    tracker.reset('s1');
+
+    tracker.noteDelta('output', 123);
+
+    expect(seen).toEqual([123]);
+  });
+
+  it('reasoning 大于 output 时报告矛盾数据', () => {
+    const mismatches: { output: number; reasoning: number }[] = [];
+    const tracker = new RequestTracker({
+      onDeltaWithoutRequest: noop,
+      onTokenMismatch: (details) => mismatches.push(details),
+    });
+    tracker.reset('s1');
+    tracker.beginRequest({ atMs: 1000, provider: 'p', model: 'm', thinkingLevel: 'high' });
+    tracker.noteDelta('output', 1200);
+
+    tracker.finish({ atMs: 1300, outputTokens: 10, reasoningTokens: 30, stopReason: 'stop' });
+
+    expect(mismatches).toEqual([{ output: 10, reasoning: 30 }]);
+  });
+});
