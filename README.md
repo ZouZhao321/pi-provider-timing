@@ -6,11 +6,19 @@ A pi extension that records the first-token latency and output rate of every pro
 
 ## Install
 
+Install from npm:
+
+```bash
+pi install npm:pi-provider-timing
+```
+
+Or install straight from the repository:
+
 ```bash
 pi install git:github.com/ZouZhao321/pi-provider-timing
 ```
 
-For local development, install from a checkout instead:
+For local development, install from a checkout directory instead:
 
 ```bash
 pi install ./provider-timing

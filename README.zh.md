@@ -8,6 +8,24 @@ pi 自身的 usage 只包含 token 计数与成本，没有任何时间量测。
 
 ## 安装与加载
 
+从 npm 安装：
+
+```bash
+pi install npm:pi-provider-timing
+```
+
+或直接从仓库安装：
+
+```bash
+pi install git:github.com/ZouZhao321/pi-provider-timing
+```
+
+本地开发时改用检出目录安装：
+
+```bash
+pi install ./provider-timing
+```
+
 扩展放在 `~/.pi/agent/extensions/provider-timing/`，pi 启动时自动发现。改动源码后执行 `/reload` 或重启 pi 生效，不需要重新安装。`node_modules` 仅供编辑器类型提示与本地检查使用，运行时解析的 `@earendil-works/pi-coding-agent` 由 pi 自己提供。
 
 ## 数据文件
