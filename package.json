@@ -1,10 +1,12 @@
 {
   "name": "pi-provider-timing",
-  "private": true,
   "version": "0.2.0",
   "type": "module",
-  "description": "记录每次 provider 请求的首 token 延迟与输出速率，追加写入 JSONL",
+  "description": "Records the first-token latency and output rate of every provider request, appended to a JSONL file",
   "license": "MIT",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
   "keywords": [
     "pi-package",
     "pi-extension"
@@ -40,7 +42,8 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check:pack": "node scripts/check-pack.mjs"
+    "check:pack": "node scripts/check-pack.mjs",
+    "prepublishOnly": "npm run typecheck && npm run lint && npm test && npm run format:check && npm run check:pack"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
