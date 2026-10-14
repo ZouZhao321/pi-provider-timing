@@ -20,7 +20,6 @@
     "url": "https://github.com/ZouZhao321/pi-provider-timing/issues"
   },
   "files": [
-    "index.ts",
     "src/",
     "README.md",
     "README.zh.md",
@@ -32,7 +31,7 @@
   },
   "pi": {
     "extensions": [
-      "./index.ts"
+      "./src/index.ts"
     ]
   },
   "scripts": {

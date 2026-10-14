@@ -3,9 +3,9 @@
 // 诊断日志：<agent 目录>/provider-timing/plugin.log（PI_PROVIDER_TIMING_DEBUG=1 时追加逐事件细节）
 import { VERSION, getAgentDir, type ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { join } from 'node:path';
-import { createLogger, type Logger } from './src/logger.ts';
-import { RequestTracker, deltaKind, type TimingRecord } from './src/tracker.ts';
-import { appendLine, writeRecordOrLog } from './src/writer.ts';
+import { createLogger, type Logger } from './logger.ts';
+import { RequestTracker, deltaKind, type TimingRecord } from './tracker.ts';
+import { appendLine, writeRecordOrLog } from './writer.ts';
 
 const DATA_DIR = 'provider-timing';
 
