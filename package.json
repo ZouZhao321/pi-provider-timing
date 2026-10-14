@@ -39,7 +39,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:pack": "node scripts/check-pack.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
