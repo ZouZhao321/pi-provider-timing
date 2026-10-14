@@ -4,9 +4,30 @@
   "version": "0.2.0",
   "type": "module",
   "description": "记录每次 provider 请求的首 token 延迟与输出速率，追加写入 JSONL",
+  "license": "MIT",
   "keywords": [
-    "pi-package"
+    "pi-package",
+    "pi-extension"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZouZhao321/pi-provider-timing.git"
+  },
+  "homepage": "https://github.com/ZouZhao321/pi-provider-timing#readme",
+  "bugs": {
+    "url": "https://github.com/ZouZhao321/pi-provider-timing/issues"
+  },
+  "files": [
+    "index.ts",
+    "src/",
+    "README.md",
+    "README.zh.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "pi": {
     "extensions": [
       "./index.ts"
@@ -24,7 +45,7 @@
     "@earendil-works/pi-coding-agent": "*"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "0.84.2",
+    "@earendil-works/pi-coding-agent": "^0.84.2",
     "@types/node": "^22.0.0",
     "eslint": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
