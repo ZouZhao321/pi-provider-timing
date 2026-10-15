@@ -42,6 +42,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check:pack": "node scripts/check-pack.mjs",
+    "prepare": "husky",
     "prepublishOnly": "npm run typecheck && npm run lint && npm test && npm run format:check && npm run check:pack"
   },
   "peerDependencies": {
@@ -51,6 +52,7 @@
     "@earendil-works/pi-coding-agent": "^0.84.2",
     "@types/node": "^22.0.0",
     "eslint": "^9.0.0",
+    "husky": "^9.1.7",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "prettier": "^3.4.0",

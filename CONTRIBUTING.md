@@ -20,13 +20,12 @@ Subject format: `type(scope): 中文描述`. The description is written in Chine
 | chore    | Maintenance                     |
 | perf     | Performance                     |
 
-The description must contain Chinese characters. `scripts/check-commit-msg.py` enforces both the format and the type list; subjects starting with `Merge `, `Revert `, `fixup! `, `squash! ` or `amend! ` are passed through untouched.
+The description must contain Chinese characters. `scripts/check-commit-msg.mjs` enforces both the format and the type list; subjects starting with `Merge `, `Revert `, `fixup! `, `squash! ` or `amend! ` are passed through untouched.
 
-Install the hook once per clone so the check runs before every commit:
+Install the hook by installing the dependencies once per clone; husky's `prepare` script wires it up, and `.husky/commit-msg` runs the checker before every commit:
 
 ```bash
-python -m pip install --user pre-commit   # skip if pre-commit is already installed
-pre-commit install --hook-type commit-msg
+npm install
 ```
 
 ## Before you push
